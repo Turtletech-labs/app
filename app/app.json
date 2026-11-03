@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "Sangam",
+    "slug": "sangam",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "labs.turtletech.sangam"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "labs.turtletech.sangam"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "output": "single",
+      "bundler": "metro",
+      "name": "Sangam",
+      "shortName": "Sangam",
+      "themeColor": "#0F6E70",
+      "backgroundColor": "#F4F2EC"
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-web-browser",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Your location is read once, only when you press SOS, and sent from your phone to the contacts you choose."
+        }
+      ]
+    ],
+    "scheme": "sangam"
+  }
+}
