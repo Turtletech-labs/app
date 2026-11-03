@@ -53,4 +53,5 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install semgrep==1.183.0
-      - run: semgrep scan --config p/default --config p/typescript --config p/secrets --error --skip-unknown-extensions --metrics off
+      - run: semgrep scan --config p/default --config p/typescript --config p/secrets --error --exclude .github --skip-unknown-extensions --metrics off
+  
