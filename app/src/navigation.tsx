@@ -20,7 +20,7 @@ import { MemberScreen } from './screens/MemberScreen';
 import { SafetyScreen } from './screens/SafetyScreen';
 import { EmergencyCardScreen } from './screens/EmergencyCardScreen';
 import { ContactsScreen } from './screens/ContactsScreen';
-import { GuideScreen } from './screens/GuidesScreen';
+import { GuideScreen, GuideTopicScreen } from './screens/GuidesScreen';
 import { ServicesScreen } from './screens/ServicesScreen';
 import { ServiceRequestScreen } from './screens/ServiceRequestScreen';
 import { ProfileScreen } from './screens/ProfileScreen';
@@ -35,6 +35,7 @@ export type RootStackParamList = {
   Chat: { id: string; name: string; otherId: string };
   Member: { id: string };
   Guide: { id: string };
+  GuideTopic: { guideId: string; topicId: string };
   ServiceRequest: { serviceId: string };
   EmergencyCard: undefined;
   Contacts: undefined;
@@ -88,6 +89,7 @@ export function RootNavigator() {
             <Stack.Screen name="Chat" component={ChatScreen} options={({ route }) => ({ title: route.params.name })} />
             <Stack.Screen name="Member" component={MemberScreen} options={{ title: 'Member' }} />
             <Stack.Screen name="Guide" component={GuideScreen} options={{ title: 'Guide' }} />
+            <Stack.Screen name="GuideTopic" component={GuideTopicScreen} options={{ title: 'Guide' }} />
             <Stack.Screen name="ServiceRequest" component={ServiceRequestScreen} options={{ title: 'Request a service' }} />
             <Stack.Screen name="EmergencyCard" component={EmergencyCardScreen} options={{ title: 'Emergency card' }} />
             <Stack.Screen name="Contacts" component={ContactsScreen} options={{ title: 'Trusted contacts' }} />

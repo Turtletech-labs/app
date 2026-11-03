@@ -11,7 +11,7 @@ India. Launch cities: Dublin and London. Working name: Sangam (set in
 - `app/`: Expo (React Native + TypeScript) app for iOS, Android and web.
 - `supabase/migrations/`: the database schema and **all access rules** (row-level security).
 - `supabase/tests/`: database rule tests on a throwaway local Postgres.
-- `docs/`: specs, trust levels, invite codes, moderation runbook, `legal/` (rules, privacy, terms), and the prompts for the next features.
+- `docs/`: specs, trust levels, invite codes, moderation runbook, newcomer guides (`guides.md`), `legal/` (rules, privacy, terms), and the prompts for the next features.
 
 ## Commands
 

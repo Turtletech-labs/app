@@ -6,7 +6,7 @@ import { BookOpen, ChevronRight, Siren } from 'lucide-react-native';
 import { api, ApiError } from '../lib/api';
 import { timeAgo } from '../lib/format';
 import type { ServiceRequest } from '../lib/types';
-import { GUIDES } from '../content/guides';
+import { guidesFor } from '../content/guides';
 import { SERVICE_GROUPS, SERVICES, TIERS, type Tier } from '../content/services';
 import { useApp } from '../state/AppState';
 import { colors, radius, space, type } from '../theme';
@@ -49,7 +49,7 @@ export function ServicesScreen() {
     }
   };
 
-  const guides = [...GUIDES].sort((a, b) => Number(b.city === profile?.city) - Number(a.city === profile?.city));
+  const guides = guidesFor(profile?.city);
 
   return (
     <Screen>
