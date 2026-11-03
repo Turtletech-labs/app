@@ -4,7 +4,7 @@ import {
   StyleSheet, Text, TextInput, View, type TextInputProps, type ViewStyle,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BadgeCheck, ShieldCheck, TriangleAlert, X } from 'lucide-react-native';
+import { BadgeCheck, Check, ShieldCheck, TriangleAlert, X } from 'lucide-react-native';
 import { colors, maxWidth, radius, space, type } from '../theme';
 import { initials } from '../lib/format';
 import type { ProfileSummary, TrustLevel } from '../lib/types';
@@ -134,6 +134,20 @@ export function Banner({ tone = 'warn', title, children }: { tone?: 'warn' | 'in
         {typeof children === 'string' ? <Text style={{ color: colors.ink, fontSize: 14, lineHeight: 20 }}>{children}</Text> : children}
       </View>
     </View>
+  );
+}
+
+export function Checkbox({ checked, onChange, children }: { checked: boolean; onChange: (v: boolean) => void; children: React.ReactNode }) {
+  return (
+    <Pressable onPress={() => onChange(!checked)} accessibilityRole="checkbox" accessibilityState={{ checked }} style={{ flexDirection: 'row', gap: space.sm, alignItems: 'flex-start' }}>
+      <View style={{
+        width: 24, height: 24, borderRadius: 6, borderWidth: 2, marginTop: 1, alignItems: 'center', justifyContent: 'center',
+        borderColor: checked ? colors.teal : colors.muted, backgroundColor: checked ? colors.teal : colors.surface,
+      }}>
+        {checked ? <Check size={16} color={colors.white} /> : null}
+      </View>
+      <View style={{ flex: 1 }}>{children}</View>
+    </Pressable>
   );
 }
 

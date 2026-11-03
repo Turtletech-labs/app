@@ -3,6 +3,7 @@
 // request-to-chat) so the preview behaves like the real app.
 import type { Api, Session } from './types';
 import { ApiError } from './types';
+import { TERMS_VERSION } from '../../config';
 import {
   LEVEL_TO_MESSAGE, LEVEL_TO_REPLY, REQUIRED_LEVEL,
   type ChatRequest, type Circle, type Conversation, type Message, type NoticeDetails, type Post,
@@ -10,6 +11,8 @@ import {
 } from '../types';
 
 const ME = 'u-me';
+// Codes that work in the preview. Real codes live in the database (docs/invites.md).
+const DEMO_INVITES: Record<string, TrustLevel> = { 'SANGAM-DEMO': 2, 'SANGAM-HOST': 3 };
 const HOUR = 3600_000;
 const DAY = 24 * HOUR;
 
@@ -36,7 +39,7 @@ interface State {
 function person(id: string, displayName: string, city: string, country: string, profession: string, trustLevel: TrustLevel, isExpert = false, extra: Partial<Profile> = {}): Profile {
   return {
     id, displayName, city, country, profession, trustLevel, isExpert,
-    almaMater: '', homeState: '', bio: '', createdAt: new Date(Date.now() - 90 * DAY).toISOString(), ...extra,
+    almaMater: '', homeState: '', bio: '', createdAt: new Date(Date.now() - 90 * DAY).toISOString(), termsVersion: TERMS_VERSION, ...extra,
   };
 }
 
@@ -224,13 +227,30 @@ export function createDemoApi(initial: State = seedState()): Api & { _state: Sta
         ...input,
         displayName: name,
         createdAt: existing?.createdAt ?? new Date().toISOString(),
+        termsVersion: existing ? existing.termsVersion : null,
       };
       s.profiles[ME] = p;
       const cityCircle = s.circles.find((c) => c.kind === 'city' && c.city === p.city);
       if (cityCircle) s.memberships[ME].add(cityCircle.id);
       return p;
     },
+    async acceptTerms(version) {
+      const p = me();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(version)) throw new ApiError('Unknown version of the rules.', 'invalid');
+      s.profiles[ME] = { ...p, termsVersion: version };
+      return s.profiles[ME];
+    },
     async getProfile(id) { await tick(); return blockedEitherWay(ME, id) && id !== ME ? null : s.profiles[id] ?? null; },
+
+    async redeemInvite(code) {
+      const p = me();
+      await tick();
+      const level = DEMO_INVITES[code.trim().toUpperCase()];
+      if (!level) throw new ApiError("That code isn't valid, has expired or has been used up. Check it and try again.", 'invalid');
+      const next = Math.max(p.trustLevel, level) as TrustLevel;
+      s.profiles[ME] = { ...p, trustLevel: next };
+      return next;
+    },
 
     async listMyCircles() { await tick(); return s.circles.filter((c) => s.memberships[ME]?.has(c.id)); },
     async listOtherCircles() { await tick(); return s.circles.filter((c) => !s.memberships[ME]?.has(c.id)); },

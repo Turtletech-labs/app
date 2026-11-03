@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Text, View } from 'react-native';
 import { api, ApiError } from '../lib/api';
-import { LAUNCH_CITIES } from '../config';
+import { LAUNCH_CITIES, TERMS_VERSION } from '../config';
+import { openLegal } from '../lib/legal';
 import { useApp } from '../state/AppState';
-import { space, type } from '../theme';
-import { Button, Chip, ErrorText, Field, Screen } from '../components/ui';
+import { colors, space, type } from '../theme';
+import { Button, Checkbox, Chip, ErrorText, Field, Screen } from '../components/ui';
 import type { ScreenProps } from '../navigation';
 
 export function ProfileFormScreen({ navigation }: ScreenProps<'EditProfile'> | ScreenProps<'Onboarding'>) {
@@ -19,6 +20,8 @@ export function ProfileFormScreen({ navigation }: ScreenProps<'EditProfile'> | S
   const [almaMater, setAlmaMater] = useState(profile?.almaMater ?? '');
   const [homeState, setHomeState] = useState(profile?.homeState ?? '');
   const [bio, setBio] = useState(profile?.bio ?? '');
+  const [invite, setInvite] = useState('');
+  const [agree, setAgree] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,7 +33,19 @@ export function ProfileFormScreen({ navigation }: ScreenProps<'EditProfile'> | S
         displayName: name, city: city.trim(), country: country.trim().toUpperCase(), profession: profession.trim(),
         almaMater: almaMater.trim(), homeState: homeState.trim(), bio: bio.trim(),
       });
-      setProfile(p);
+      let saved = p;
+      if (!editing) saved = await api.acceptTerms(TERMS_VERSION);
+      if (!editing && invite.trim()) {
+        try {
+          await api.redeemInvite(invite);
+          saved = (await api.getMyProfile()) ?? saved;
+        } catch (e) {
+          // Profile is saved; let them fix the code or clear it and carry on.
+          setError(e instanceof ApiError ? `${e.message} Or leave the code empty and add it later from your Profile.` : 'Could not check that code. Try again.');
+          return;
+        }
+      }
+      setProfile(saved);
       if (editing && navigation.canGoBack()) navigation.goBack();
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Could not save. Try again.');
@@ -64,8 +79,22 @@ export function ProfileFormScreen({ navigation }: ScreenProps<'EditProfile'> | S
       <Field label="College or university (optional)" value={almaMater} onChangeText={setAlmaMater} placeholder="IIT Delhi" maxLength={80} />
       <Field label="Home state (optional)" value={homeState} onChangeText={setHomeState} placeholder="Kerala" maxLength={60} />
       <Field label="About you (optional)" value={bio} onChangeText={setBio} multiline maxLength={500} placeholder="What you can help with, or what you're looking for." />
+      {!editing ? (
+        <Field label="Invite code (optional)" value={invite} onChangeText={setInvite} placeholder="e.g. DUBLIN-WELCOME" maxLength={32}
+          autoCapitalize="characters" autoComplete="off" hint="Got a code from the Sangam team or a member? It unlocks posting and messages straight away." />
+      ) : null}
+      {!editing ? (
+        <Checkbox checked={agree} onChange={setAgree}>
+          <Text style={type.body}>
+            I am 18 or over, and I agree to the{' '}
+            <Text style={{ color: colors.teal, textDecorationLine: 'underline' }} onPress={() => openLegal('community-rules')}>community rules</Text>,{' '}
+            <Text style={{ color: colors.teal, textDecorationLine: 'underline' }} onPress={() => openLegal('terms-of-use')}>terms</Text> and{' '}
+            <Text style={{ color: colors.teal, textDecorationLine: 'underline' }} onPress={() => openLegal('privacy')}>privacy policy</Text>.
+          </Text>
+        </Checkbox>
+      ) : null}
       <ErrorText>{error}</ErrorText>
-      <Button title={editing ? 'Save' : 'Join the community'} loading={busy} disabled={name.trim().length < 2 || !city.trim()} onPress={save} />
+      <Button title={editing ? 'Save' : 'Join the community'} loading={busy} disabled={name.trim().length < 2 || !city.trim() || (!editing && !agree)} onPress={save} />
     </Screen>
   );
 }

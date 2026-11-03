@@ -4,10 +4,11 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Plus } from 'lucide-react-native';
 import { api } from '../lib/api';
+import { TERMS_VERSION } from '../config';
 import type { Circle, Post, PostType } from '../lib/types';
 import { useApp } from '../state/AppState';
 import { colors, radius, space, type } from '../theme';
-import { Chip, Empty, Loading, Screen } from '../components/ui';
+import { Banner, Button, Chip, Empty, Loading, Screen } from '../components/ui';
 import { PostCard, TYPE_META } from '../components/PostCard';
 import type { RootStackParamList } from '../navigation';
 
@@ -41,6 +42,14 @@ export function HomeScreen() {
     <View style={{ flex: 1 }}>
       <Screen refreshing={refreshing} onRefresh={refresh}>
         <Text style={type.small}>Hi {profile?.displayName.split(' ')[0]}. Here's what's new in your circles.</Text>
+        {profile && profile.termsVersion !== TERMS_VERSION ? (
+          <View style={{ gap: space.sm }}>
+            <Banner tone="info" title="Please review the community rules">
+              We have written down what is allowed on Sangam and how we handle your data. Please read and accept them.
+            </Banner>
+            <Button title="Review and accept" onPress={() => nav.navigate('Rules')} />
+          </View>
+        ) : null}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: space.sm }}>
           {FILTERS.map((f) => (
             <Chip key={f} label={f === 'all' ? 'Everything' : TYPE_META[f].plural} selected={filter === f} onPress={() => setFilter(f)} />

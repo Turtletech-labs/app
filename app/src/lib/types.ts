@@ -1,5 +1,5 @@
-// Trust levels: 1 = email, 2 = work or university email (or two vouches),
-// 3 = government ID check. See docs/trust-levels.md.
+// Trust levels: 1 = email, 2 = work or university email, an invite code or two
+// vouches, 3 = government ID check. See docs/trust-levels.md.
 export type TrustLevel = 1 | 2 | 3;
 
 export type PostType = 'notice' | 'question' | 'job' | 'event';
@@ -19,6 +19,7 @@ export interface Profile extends ProfileSummary {
   homeState: string;
   bio: string;
   createdAt: string;
+  termsVersion: string | null; // version of the rules and privacy policy they accepted
 }
 
 export type ProfileInput = Pick<Profile, 'displayName' | 'city' | 'country' | 'profession' | 'almaMater' | 'homeState' | 'bio'>;
@@ -120,7 +121,7 @@ export const REQUIRED_LEVEL: Record<PostType, TrustLevel> = {
   notice: 2,
   question: 2,
   job: 3,
-  event: 3,
+  event: 2,
 };
 export const LEVEL_TO_MESSAGE: TrustLevel = 2;
 export const LEVEL_TO_REPLY: TrustLevel = 2;

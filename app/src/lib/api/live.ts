@@ -9,7 +9,7 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL } from '../../config';
 import type { Api, Session } from './types';
 import { ApiError } from './types';
 import type {
-  ChatRequest, Circle, Conversation, Message, Post, PostDetails, Profile, ProfileSummary, Reply, ServiceRequest,
+  ChatRequest, Circle, Conversation, Message, Post, PostDetails, Profile, ProfileSummary, Reply, ServiceRequest, TrustLevel,
 } from '../types';
 
 const AUTHOR = 'id, display_name, city, trust_level, is_expert';
@@ -24,6 +24,7 @@ const toSummary = (r: Row | null | undefined): ProfileSummary =>
 const toProfile = (r: Row): Profile => ({
   ...toSummary(r),
   country: r.country, profession: r.profession, almaMater: r.alma_mater, homeState: r.home_state, bio: r.bio, createdAt: r.created_at,
+  termsVersion: r.terms_version ?? null,
 });
 
 const toServiceRequest = (r: Row): ServiceRequest => ({
@@ -42,8 +43,8 @@ const toPost = (r: Row, myRsvps: Set<string>): Post => ({
 function fail(error: { message: string; code?: string } | null): void {
   if (!error) return;
   const msg = error.message || 'Something went wrong.';
-  if (/row-level security|permission denied/i.test(msg)) throw new ApiError("You can't do that yet. Check your trust level, or whether you've joined this circle.", 'not_allowed');
-  if (/too quickly|most chat requests|posted a lot/i.test(msg)) throw new ApiError(msg, 'rate_limited');
+  if (/row-level security|permission denied/i.test(msg)) throw new ApiError("You can't do that yet. Check your trust level (Profile → invite code), or whether you've joined this circle.", 'not_allowed');
+  if (/too quickly|too many tries|most chat requests|posted a lot/i.test(msg)) throw new ApiError(msg, 'rate_limited');
   if (/fetch|network/i.test(msg)) throw new ApiError("Can't reach the server. Check your connection.", 'network');
   throw new ApiError(msg, error.code === 'P0001' ? 'invalid' : 'unknown');
 }
@@ -133,10 +134,26 @@ export function createLiveApi(): Api {
       fail(e2);
       return toProfile(data!);
     },
+    async acceptTerms(version) {
+      const id = await uid();
+      const { error } = await sb.from('profiles').update({ terms_version: version }).eq('id', id);
+      fail(error);
+      const { data, error: e2 } = await sb.from('profiles').select('*').eq('id', id).single();
+      fail(e2);
+      return toProfile(data!);
+    },
     async getProfile(id) {
       const { data, error } = await sb.from('profiles').select('*').eq('id', id).maybeSingle();
       fail(error);
       return data ? toProfile(data) : null;
+    },
+
+    async redeemInvite(code) {
+      const { data, error } = await sb.rpc('redeem_invite', { p_code: code });
+      fail(error);
+      const level = Number(data);
+      if (!level) throw new ApiError("That code isn't valid, has expired or has been used up. Check it and try again.", 'invalid');
+      return level as TrustLevel;
     },
 
     async listMyCircles() {

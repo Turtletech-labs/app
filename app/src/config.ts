@@ -11,6 +11,18 @@ export const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? ''
 // previewed and tested without any accounts.
 export const DEMO_MODE = !SUPABASE_URL || !SUPABASE_ANON_KEY || process.env.EXPO_PUBLIC_DEMO === '1';
 
+// Version of the community rules, terms and privacy policy (docs/legal). Change
+// it, and the date at the top of each document, whenever they change in a way
+// members should agree to again. Members are asked to accept the new version.
+export const TERMS_VERSION = '2026-11-03';
+
+// Where the public legal pages live (app/public, built from docs/legal).
+export const SITE_URL: string =
+  process.env.EXPO_PUBLIC_SITE_URL
+  ?? (typeof window !== 'undefined' && typeof window.location?.origin === 'string' && window.location.origin.startsWith('http')
+    ? window.location.origin
+    : 'https://app-aad.pages.dev');
+
 // The cities the app launches in. Members elsewhere can still join.
 export const LAUNCH_CITIES = [
   { city: 'Dublin', country: 'IE' },

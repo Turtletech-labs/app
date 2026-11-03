@@ -2,6 +2,7 @@
 // never shows behaviour the real app would refuse.
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createDemoApi } from '../api/demo';
+import { TERMS_VERSION } from '../../config';
 
 let api: ReturnType<typeof createDemoApi>;
 
@@ -30,6 +31,29 @@ describe('demo api', () => {
     expect(ok.author.displayName).toBe('Asha V');
     await api.setDemoTrustLevel!(1);
     await expect(api.addReply(ok.id, 'hello')).rejects.toThrow(/trust level 2/);
+  });
+
+  it('lets a Gmail member unlock level 2 with an invite code, and hosting events needs only level 2', async () => {
+    await api.setDemoTrustLevel!(1);
+    const circleId = (await api.listMyCircles())[0].id;
+    const event = { circleId, type: 'event' as const, title: 'Chai meetup', body: 'Come along', details: { startsAt: new Date(Date.now() + 5 * 86400_000).toISOString(), venue: 'Cafe, Dublin 2', capacity: null }, expiresAt: null };
+    await expect(api.createPost(event)).rejects.toThrow(/trust level 2/);
+    await expect(api.redeemInvite('nope-nope')).rejects.toThrow(/isn't valid/);
+    expect(await api.redeemInvite(' sangam-demo ')).toBe(2);
+    expect((await api.getMyProfile())!.trustLevel).toBe(2);
+    await expect(api.createPost(event)).resolves.toBeTruthy();
+    await expect(api.createPost({ ...event, type: 'job', title: 'Hiring', details: { kind: 'opening', company: 'X', location: 'Dublin', link: '' } })).rejects.toThrow(/trust level 3/);
+    // a code never lowers a level
+    await api.setDemoTrustLevel!(3);
+    expect(await api.redeemInvite('SANGAM-DEMO')).toBe(3);
+  });
+
+  it('asks new members to accept the rules and remembers which version', async () => {
+    expect((await api.getMyProfile())!.termsVersion).toBeNull();
+    await expect(api.acceptTerms('latest')).rejects.toThrow(/Unknown version/);
+    const p = await api.acceptTerms(TERMS_VERSION);
+    expect(p.termsVersion).toBe(TERMS_VERSION);
+    expect((await api.getMyProfile())!.termsVersion).toBe(TERMS_VERSION);
   });
 
   it('opens a chat only after a request is accepted', async () => {

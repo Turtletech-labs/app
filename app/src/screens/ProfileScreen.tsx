@@ -8,13 +8,13 @@ import { clearDeviceData } from '../lib/deviceStore';
 import type { ProfileSummary, TrustLevel } from '../lib/types';
 import { useApp } from '../state/AppState';
 import { colors, space, type } from '../theme';
-import { Avatar, Banner, Button, Card, Chip, ErrorText, Screen, SectionTitle, TrustBadge } from '../components/ui';
+import { Avatar, Banner, Button, Card, Chip, ErrorText, Field, Screen, SectionTitle, TrustBadge } from '../components/ui';
 import type { RootStackParamList } from '../navigation';
 
 const LEVELS: { level: TrustLevel; title: string; body: string }[] = [
-  { level: 1, title: 'Level 1 · Email', body: 'Browse every circle, read answers and guides, RSVP to events, use SOS.' },
-  { level: 2, title: 'Level 2 · Work or university email', body: 'Post notices and questions, reply, and send chat requests. Or get two ID-verified members to vouch for you.' },
-  { level: 3, title: 'Level 3 · ID verified', body: 'Host events, post jobs, referrals and housing, and answer as an expert. Needs a passport or driving licence check with a selfie.' },
+  { level: 1, title: 'Level 1 · Email', body: 'Browse every circle, read answers and guides, RSVP to events, use SOS. Everyone starts here.' },
+  { level: 2, title: 'Level 2 · Work or university email', body: 'Post notices, questions and events, reply, and send chat requests. Get here with a work or university email or an invite code.' },
+  { level: 3, title: 'Level 3 · ID verified', body: 'Post jobs, referrals and housing, and answer as an expert. Needs a passport or driving licence check with a selfie.' },
 ];
 
 export function ProfileScreen() {
@@ -23,6 +23,9 @@ export function ProfileScreen() {
   const [blocked, setBlocked] = useState<ProfileSummary[]>([]);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [code, setCode] = useState('');
+  const [codeBusy, setCodeBusy] = useState(false);
+  const [codeMsg, setCodeMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   useFocusEffect(useCallback(() => { api.listBlocked().then(setBlocked).catch(() => {}); }, []));
   if (!profile) return null;
@@ -33,6 +36,21 @@ export function ProfileScreen() {
       await api.deleteMyAccount();
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Could not delete your account. Try again or contact support.');
+    }
+  };
+
+  const redeem = async () => {
+    setCodeBusy(true);
+    setCodeMsg(null);
+    try {
+      const level = await api.redeemInvite(code);
+      await refreshProfile();
+      setCode('');
+      setCodeMsg({ ok: true, text: `Done. You are now at level ${level}.` });
+    } catch (e) {
+      setCodeMsg({ ok: false, text: e instanceof ApiError ? e.message : 'Could not check that code. Try again.' });
+    } finally {
+      setCodeBusy(false);
     }
   };
 
@@ -57,6 +75,14 @@ export function ProfileScreen() {
           <Text style={type.small}>{l.body}</Text>
         </Card>
       ))}
+      {profile.trustLevel < 2 ? (
+        <Card>
+          <Text style={{ fontWeight: '700', color: colors.ink }}>Have an invite code?</Text>
+          <Field label="Invite code" value={code} onChangeText={setCode} placeholder="e.g. DUBLIN-WELCOME" maxLength={32} autoCapitalize="characters" autoComplete="off" />
+          {codeMsg ? <Text style={[type.small, { color: codeMsg.ok ? colors.teal : colors.sos }]}>{codeMsg.text}</Text> : null}
+          <Button title="Use code" loading={codeBusy} disabled={code.trim().length < 6} onPress={redeem} />
+        </Card>
+      ) : null}
       {profile.trustLevel < 3 ? <Text style={type.small}>ID checks open soon. Images are checked by our verification partner and not kept by us; we store only the result.</Text> : null}
 
       {api.mode === 'demo' && api.setDemoTrustLevel ? (
@@ -83,6 +109,7 @@ export function ProfileScreen() {
       ))}
 
       <SectionTitle>Account</SectionTitle>
+      <Button title="Rules and privacy" kind="secondary" onPress={() => nav.navigate('Rules')} />
       <Button title="Sign out" kind="secondary" icon={<LogOut size={18} color={colors.ink} />} onPress={() => api.signOut()} />
       {confirmDelete ? (
         <Card style={{ borderColor: colors.sos }}>

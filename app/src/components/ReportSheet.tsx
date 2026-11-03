@@ -5,7 +5,10 @@ import type { ReportTarget } from '../lib/types';
 import { space, type } from '../theme';
 import { Button, Chip, ErrorText, Field, Sheet } from './ui';
 
-const REASONS = ['Scam or asking for money', 'Harassment', 'Fake profile', 'Unsafe event or meeting', 'Spam', 'Something else'];
+const REASONS = [
+  'Scam, fraud or phishing', 'Obscene or sexual content', 'Harassment, hate or threats', 'Fake profile or impersonation',
+  'Unsafe event or meeting', 'Illegal goods or services', 'Shares private information', 'Spam', 'Something else',
+];
 
 export function ReportSheet({ visible, target, targetId, onClose, onDone }: {
   visible: boolean; target: ReportTarget; targetId: string; onClose: () => void; onDone?: () => void;
@@ -39,7 +42,7 @@ export function ReportSheet({ visible, target, targetId, onClose, onDone }: {
     <Sheet visible={visible} title={sent ? 'Report sent' : 'Report'} onClose={close}>
       {sent ? (
         <>
-          <Text style={type.body}>Thanks. A moderator will look at this within 24 hours. The person you reported isn't told who reported them.</Text>
+          <Text style={type.body}>Thanks. We read every report and deal with the most serious ones first. The person you reported isn't told who reported them. If someone is in danger, call your local emergency number.</Text>
           <Button title="Done" onPress={close} />
         </>
       ) : (

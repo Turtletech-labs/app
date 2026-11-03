@@ -10,6 +10,7 @@ import type { PostType } from './lib/types';
 import { Loading } from './components/ui';
 import { WelcomeScreen } from './screens/WelcomeScreen';
 import { ProfileFormScreen } from './screens/ProfileFormScreen';
+import { RulesScreen } from './screens/RulesScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { PostScreen } from './screens/PostScreen';
 import { ComposeScreen } from './screens/ComposeScreen';
@@ -38,6 +39,7 @@ export type RootStackParamList = {
   EmergencyCard: undefined;
   Contacts: undefined;
   Circles: undefined;
+  Rules: undefined;
   EditProfile: undefined;
   Onboarding: undefined;
 };
@@ -90,6 +92,7 @@ export function RootNavigator() {
             <Stack.Screen name="EmergencyCard" component={EmergencyCardScreen} options={{ title: 'Emergency card' }} />
             <Stack.Screen name="Contacts" component={ContactsScreen} options={{ title: 'Trusted contacts' }} />
             <Stack.Screen name="Circles" component={CirclesScreen} options={{ title: 'Your circles' }} />
+            <Stack.Screen name="Rules" component={RulesScreen} options={{ title: 'Rules and privacy' }} />
             <Stack.Screen name="EditProfile" component={ProfileFormScreen} options={{ title: 'Edit profile' }} />
           </>
         )}

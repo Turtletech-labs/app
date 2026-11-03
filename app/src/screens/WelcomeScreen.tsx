@@ -3,6 +3,7 @@ import { Text, View } from 'react-native';
 import { BadgeCheck, MessageCircle, Siren } from 'lucide-react-native';
 import { api, ApiError } from '../lib/api';
 import { APP_NAME } from '../config';
+import { openLegal } from '../lib/legal';
 import { colors, space, type } from '../theme';
 import { Banner, Button, Card, ErrorText, Field, Screen } from '../components/ui';
 
@@ -57,7 +58,7 @@ export function WelcomeScreen() {
         {step === 'email' ? (
           <>
             <Field label="Email" value={email} onChangeText={setEmail} placeholder="you@example.com" keyboardType="email-address"
-              autoCapitalize="none" autoComplete="email" hint="Use your work or university email to unlock posting and messages straight away." />
+              autoCapitalize="none" autoComplete="email" hint="Use your work or university email to unlock posting and messages straight away. Using Gmail? You can add an invite code next." />
             <Button title="Send me a sign-in code" loading={busy} onPress={() => run(async () => { await api.sendEmailCode(email); setStep('code'); })} />
           </>
         ) : (
@@ -72,6 +73,14 @@ export function WelcomeScreen() {
         <Text style={[type.small, { textAlign: 'center' }]}>or</Text>
         <Button title="Continue with Google" kind="secondary" onPress={() => run(() => api.signInWithGoogle())} />
       </Card>
+
+      <Text style={[type.small, { textAlign: 'center' }]}>
+        <Text style={{ color: colors.teal, textDecorationLine: 'underline' }} onPress={() => openLegal('community-rules')}>Community rules</Text>
+        {'  ·  '}
+        <Text style={{ color: colors.teal, textDecorationLine: 'underline' }} onPress={() => openLegal('terms-of-use')}>Terms</Text>
+        {'  ·  '}
+        <Text style={{ color: colors.teal, textDecorationLine: 'underline' }} onPress={() => openLegal('privacy')}>Privacy policy</Text>
+      </Text>
 
       {api.mode === 'demo' ? (
         <Banner tone="info" title="Preview with sample data">

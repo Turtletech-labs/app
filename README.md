@@ -23,7 +23,7 @@ Demo mode uses built-in sample data. Any 6-digit code signs you in.
 | Area | What works |
 | --- | --- |
 | Sign-in | Email code or Google; profile with city, work, college and home state; account deletion |
-| Trust levels | 1 = email, 2 = work or university email, 3 = ID verified (set by an admin until ID checks ship) |
+| Trust levels | 1 = email, 2 = work or university email or an invite code, 3 = ID verified (set by an admin until ID checks ship). Invite codes: [docs/invites.md](docs/invites.md) |
 | Circles | Auto-joined city circle; join profession, alumni, life-stage and home-state circles |
 | Posts | Notices (expire automatically), questions with expert answers, jobs and referrals, events with RSVP and capacity |
 | Messages | Request-to-chat, accept or decline, no forwarding, scam warnings, block and report everywhere, rate limits |
@@ -37,7 +37,7 @@ ready-to-paste prompts for Claude Code and Codex in
 
 ## Connect a real backend (Supabase, free plan)
 
-1. Create a Supabase project in the **London (eu-west-2)** region.
+1. Create a Supabase project in an EU region (we use Frankfurt, eu-central-1).
 2. Apply the migrations in order: paste each file from `supabase/migrations/`
    into the SQL editor and run it, or use the Supabase CLI:
    `npx supabase link --project-ref <ref>` then `npx supabase db push`.
@@ -52,6 +52,9 @@ ready-to-paste prompts for Claude Code and Codex in
 5. Make someone ID-verified (level 3) or an expert from the SQL editor until
    ID checks ship:
    `update profiles set trust_level = 3, is_expert = true where id = '<user id>';`
+6. Create invite codes for testers ([docs/invites.md](docs/invites.md)) and, after
+   signing in once yourself, run `supabase/seed/launch_content.sql` so the
+   circles are not empty on day one.
 
 ## Put the web app online (Cloudflare Pages, free)
 
@@ -62,8 +65,8 @@ ready-to-paste prompts for Claude Code and Codex in
 ## Tests
 
 ```bash
-cd app && npm run typecheck && npm test        # 20 unit tests
-cd supabase/tests && npm install && npm test   # 20 database rule tests
+cd app && npm run typecheck && npm test        # 28 unit tests
+cd supabase/tests && npm install && npm test   # 29 database rule tests
 ```
 
 The database tests start a throwaway Postgres, apply the migrations with a
@@ -80,8 +83,9 @@ app/                 Expo app (iOS, Android, web)
   src/screens/       one file per screen
 supabase/
   migrations/        schema and every access rule
+  seed/              launch content to run once (not a migration)
   tests/             database rule tests
-docs/                trust levels, next features, prompts for parallel builds
+docs/                trust levels, invites, moderation runbook, legal/ (rules, privacy, terms), prompts for parallel builds
 ```
 
 ## Safety note

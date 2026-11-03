@@ -1,6 +1,6 @@
 import type {
   ChatRequest, Circle, Conversation, Message, Post, PostInput, PostType, Profile, ProfileInput,
-  ProfileSummary, Reply, ReportTarget, ServiceRequest, ServiceRequestInput,
+  ProfileSummary, Reply, ReportTarget, ServiceRequest, ServiceRequestInput, TrustLevel,
 } from '../types';
 
 export interface Session { userId: string; email: string }
@@ -21,6 +21,11 @@ export interface Api {
   getMyProfile(): Promise<Profile | null>;
   saveMyProfile(input: ProfileInput): Promise<Profile>;
   getProfile(id: string): Promise<Profile | null>;
+  // Records that the member accepted this version of the rules, terms and privacy policy.
+  acceptTerms(version: string): Promise<Profile>;
+  // Beta invite code: lifts the member to level 2 (or 3 for host codes).
+  // Resolves to the member's trust level; rejects with 'invalid' for a bad code.
+  redeemInvite(code: string): Promise<TrustLevel>;
 
   listMyCircles(): Promise<Circle[]>;
   listOtherCircles(): Promise<Circle[]>;

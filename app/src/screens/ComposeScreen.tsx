@@ -9,6 +9,7 @@ import {
 import { scamWarnings } from '../lib/safety';
 import { useApp } from '../state/AppState';
 import { colors, space, type } from '../theme';
+import { openLegal } from '../lib/legal';
 import { Banner, Button, Chip, ErrorText, Field, Screen } from '../components/ui';
 import { NOTICE_LABEL, TOPIC_LABEL, TYPE_META } from '../components/PostCard';
 import type { ScreenProps } from '../navigation';
@@ -107,8 +108,8 @@ export function ComposeScreen({ route, navigation }: ScreenProps<'Compose'>) {
       {locked ? (
         <Banner tone="info" title={needed === 3 ? 'This needs an ID-verified account' : 'This needs a work or university email'}>
           {needed === 3
-            ? 'Jobs, events and housing posts come from members who have passed an ID check, so newcomers can trust them. ID checks open soon.'
-            : 'Sign in with a work or university email, or ask two ID-verified members to vouch for you.'}
+            ? 'Jobs, referrals and housing posts come from members who have passed an ID check, so newcomers can trust them. ID checks open soon.'
+            : 'Sign in with a work or university email, or add an invite code on your Profile.'}
         </Banner>
       ) : null}
 
@@ -169,6 +170,11 @@ export function ComposeScreen({ route, navigation }: ScreenProps<'Compose'>) {
       ) : null}
 
       {warnings.length ? <Banner title="Before you post">{`${warnings[0].text} Posts that ask for money upfront are removed.`}</Banner> : null}
+      <Text style={type.small}>
+        Posts must follow the{' '}
+        <Text style={{ color: colors.teal, textDecorationLine: 'underline' }} onPress={() => openLegal('community-rules')}>community rules</Text>:
+        no scams, fees or phishing, nothing obscene or abusive, and no one else's private details.
+      </Text>
       <ErrorText>{error}</ErrorText>
       <Button title="Publish" icon={locked ? <Lock size={16} color={colors.white} /> : undefined} disabled={locked || !circleId || title.trim().length < 3 || !body.trim()} loading={busy} onPress={submit} />
     </Screen>
