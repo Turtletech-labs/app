@@ -1,13 +1,14 @@
-import React from 'react';
-import { Platform } from 'react-native';
-import { NavigationContainer, DefaultTheme, type NavigatorScreenParams } from '@react-navigation/native';
+import React, { useEffect, useMemo } from 'react';
+import { Platform, Pressable, Text } from 'react-native';
+import { NavigationContainer, DefaultTheme, createNavigationContainerRef, useNavigation, type NavigatorScreenParams } from '@react-navigation/native';
 import { createNativeStackNavigator, type NativeStackScreenProps } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { ConciergeBell, House, MessageCircle, Siren, User } from 'lucide-react-native';
+import { ChevronLeft, ConciergeBell, House, MessageCircle, Siren, User } from 'lucide-react-native';
 import { colors } from './theme';
 import { useApp } from './state/AppState';
 import type { PostType } from './lib/types';
 import { Loading } from './components/ui';
+import { attachWebHistory, canSyncWebHistory } from './lib/webHistory';
 import { WelcomeScreen } from './screens/WelcomeScreen';
 import { ProfileFormScreen } from './screens/ProfileFormScreen';
 import { RulesScreen } from './screens/RulesScreen';
@@ -48,9 +49,29 @@ export type RootStackParamList = {
 export type ScreenProps<K extends keyof RootStackParamList> = NativeStackScreenProps<RootStackParamList, K>;
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+const navigationRef = createNavigationContainerRef<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
 
 const theme = { ...DefaultTheme, colors: { ...DefaultTheme.colors, background: colors.bg, card: colors.surface, text: colors.ink, primary: colors.teal, border: colors.line } };
+
+// A clear Back control for every screen opened on top of the tabs: bigger than
+// the default arrow, labelled, and easy to hit with a thumb.
+function BackButton({ canGoBack }: { canGoBack?: boolean }) {
+  const navigation = useNavigation();
+  if (!canGoBack) return null;
+  return (
+    <Pressable
+      onPress={() => navigation.goBack()}
+      accessibilityRole="button"
+      accessibilityLabel="Back"
+      hitSlop={{ top: 10, bottom: 10, left: 10, right: 16 }}
+      style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', minHeight: 44, paddingRight: 8, opacity: pressed ? 0.6 : 1 })}
+    >
+      <ChevronLeft size={28} color={colors.teal} />
+      <Text style={{ color: colors.teal, fontSize: 16, fontWeight: '600' }}>Back</Text>
+    </Pressable>
+  );
+}
 
 function Tabs() {
   return (
@@ -73,10 +94,19 @@ function Tabs() {
 
 export function RootNavigator() {
   const { ready, session, profile } = useApp();
+  // On the web, tie the browser's back button to the app's screens.
+  const webHistory = useMemo(() => (canSyncWebHistory()
+    ? attachWebHistory({
+        getRootState: () => navigationRef.getRootState() as never,
+        goBack: () => navigationRef.goBack(),
+        goHome: () => navigationRef.navigate('Tabs', { screen: 'Home' }),
+      })
+    : null), []);
+  useEffect(() => () => webHistory?.dispose(), [webHistory]);
   if (!ready) return <Loading />;
   return (
-    <NavigationContainer theme={theme}>
-      <Stack.Navigator screenOptions={{ headerTintColor: colors.teal, headerTitleStyle: { color: colors.ink }, headerBackTitle: 'Back' }}>
+    <NavigationContainer ref={navigationRef} theme={theme} onStateChange={webHistory?.onStateChange}>
+      <Stack.Navigator screenOptions={{ headerTintColor: colors.teal, headerTitleStyle: { color: colors.ink }, headerBackTitle: 'Back', headerLeft: (p) => <BackButton canGoBack={p.canGoBack} /> }}>
         {!session ? (
           <Stack.Screen name="Tabs" component={WelcomeScreen} options={{ headerShown: false }} />
         ) : !profile ? (

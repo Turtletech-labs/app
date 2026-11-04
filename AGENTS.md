@@ -45,7 +45,12 @@ https://docs.expo.dev/versions/v58.0.0/ rather than relying on memory.
 4. Security-definer SQL functions set `search_path = ''` and only answer
    questions about the calling member (`auth.uid()`).
 5. Navigation uses React Navigation without URL linking (works inside embedded
-   previews). Don't switch to Expo Router without agreement.
+   previews). Don't switch to Expo Router without agreement. On the web, the
+   browser and Android back buttons are tied to the app's screens by
+   `app/src/lib/webHistory.ts`, which adds a history entry per screen on the
+   same address, so no names or ids ever appear in the URL. It switches itself
+   off inside embedded frames. Every screen opened on top of the tabs shows the
+   labelled Back button from `navigation.tsx`.
 6. Styles come from `app/src/theme.ts` tokens. Shared UI is in
    `app/src/components/ui.tsx`. Keep screens readable at 390 px wide and
    centred on desktop (`maxWidth`).
